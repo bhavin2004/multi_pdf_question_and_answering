@@ -17,28 +17,54 @@ load_dotenv()
 genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))  # type: ignore
 
 # get all text from all pdf
-def get_pdf_into_text(pdf_docs:list) -> str:
+def get_pdf_into_text(docs:list) -> str:
     text = ''
     
     # looping on each pdf file
-    
-    for pdf in pdf_docs:
+
+    logger.info("Extracting text from PDF:")
+    for doc in docs:
         try:
-            pdf_content=''
-            reader = PdfReader(pdf)
-            for page in reader.pages:
-                pdf_content += page.extract_text()
-            print(pdf_content[:1000])
-            text += pdf_content
+            content=''
+            if(doc.endswith('.pdf')):
+                reader = PdfReader(doc)
+                for page in reader.pages:
+                    content += page.extract_text()
+            elif(doc.endswith('.txt')):
+                with open(doc, 'r') as f:
+                    content = f.read()
+            # print(content[:1000])
+            text += content
         except Exception as e:
             CustomException(e,sys)
-            logger.error("Not able to extract text from pdf:",pdf)
+            logger.error("Not able to extract text from pdf:",doc)
     
+    return text
+
+def get_pdf_into_text_for_streamlit(docs: list) -> str:
+    text = ''
+    logger.info("Extracting text from PDF:")
+    for doc in docs:
+        try:
+            content = ''
+            filename = doc.name if hasattr(doc, 'name') else str(doc)
+
+            if filename.endswith('.pdf'):
+                reader = PdfReader(doc)
+                for page in reader.pages:
+                    content += page.extract_text() or ""
+            elif filename.endswith('.txt'):
+                content = doc.read().decode("utf-8")
+            text += content
+        except Exception as e:
+            logger.error(f"❌ Failed to extract text from: {filename}")
+            raise CustomException(e, sys)
     return text
 
 
 # now converting text into chunks
 def create_chunks(text) -> list:
+    logger.info("Creating text chunks:")
     res = []
     try:
         text_splitter = RecursiveCharacterTextSplitter(
@@ -55,6 +81,7 @@ def create_chunks(text) -> list:
         return res
 
 def get_vector_store(chunks):
+    logger.info("Creating vector store")
     try:  
         # documents = [Document(page_content=chunk) for chunk in chunks]
         
@@ -74,13 +101,12 @@ def get_vector_store(chunks):
         )
         vector_store.save_local("faiss_index")
         
-        vector_store.save_local("faiss_index")
     except Exception as e:
         CustomException(e,sys)
         logger.error("Error while creating vector store")
 
 def get_qa_chain():
-    
+    logger.info("Creating QA Chain")
     try:
         prompt_template = """
         You are a helpful and precise AI assistant. You answer questions strictly based on the context provided.
@@ -128,6 +154,7 @@ def get_qa_chain():
         return None
 
 def get_answer_from_chain(question):
+    logger.info(f"Getting the answer of the usered Question\n{question}")
     embeddings = GoogleGenerativeAIEmbeddings(model='models/embedding-001')
     vectordb = FAISS.load_local("faiss_index", embeddings=embeddings, allow_dangerous_deserialization=True)
     
@@ -142,9 +169,9 @@ def get_answer_from_chain(question):
     })
     
     # print(response)
-    
+    logger.info(f"Response from LLM: {response}")
     if isinstance(response, dict):
-        return response.get('output_text', response.get('text', ''))
+        return response.get('output_text', response.get('text', '')).strip()
     
-    return response
+    return response.strip()
   

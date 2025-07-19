@@ -3,28 +3,18 @@
         "document": "ArtificialIntelligenceWhatisit-RiturajMahato.pdf",
         "question": "What are the key benefits and concerns of using Artificial Intelligence in education?",
         "expected_answer": "Key benefits include personalized learning, reduced teacher workload, intelligent teaching tools, and flexibility through platforms like Coursera and Udemy. Major concerns involve potential job loss, ethical risks, overdependence on technology, and lack of sociological considerations in implementation.",
-        "actual_answer": "Benefits: personalized learning experiences, AI teaching assistants, consistent support, intelligent support for collaborative learning, reliability, cost-effectiveness, faster task completion, reduced errors, data-based decisions, increased productivity.  Concerns: potential for harm, lack of sociological thinking, exploitation of technology in resource-poor settings, job displacement.",
-        "similarity_score": 0.9117
+        "actual_answer": "Benefits: personalized learning experiences, AI teaching assistants, consistent support, intelligent support for collaborative learning, reliability, cost-effectiveness, faster task completion, reduced errors, data-based decisions, increased productivity.  Concerns: potential for harm, lack of sociological thinking, exploitation of technology in resource-poor settings, job displacement.\n\nSource: Provided text",
+        "similarity_score": 0.8987,
+        "completeness_score": 0.6667,
+        "citation_score": 1.0
     },
     {
-        "document": "Ch1Materialpdf__2025_06_11_13_08_19.pdf",
-        "question": "What are the key terminologies in Reinforcement Learning and what issues are commonly faced in Machine Learning?",
-        "expected_answer": "Key terms include Agent, Environment, Action, Reward, Policy, Return, Episode, and State. Common issues in ML are data quality and quantity, overfitting, underfitting, data bias, interpretability, computational resources, deployment challenges, security/privacy risks, and ethical concerns.",
-        "actual_answer": "Reinforcement Learning key terminologies: Actions, Agent, Environment, Episode, Policy, Return, Reward, State.  Issues in Machine Learning: Data Quality and Quantity, Overfitting and Underfitting, Bias in Data, Interpretability, Computational Resources, Model Deployment and Maintenance, Security and Privacy, Ethical Concerns.",
-        "similarity_score": 0.8983
-    },
-    {
-        "document": "DMandDMDWpdf__2025_06_07_15_49_49.pdf",
-        "question": "What are the typical requirements of clustering in data mining?",
-        "expected_answer": "Typical requirements include scalability, ability to deal with different types of attributes, discovery of clusters with arbitrary shape, minimal domain knowledge for input parameters, ability to handle noisy data, incremental clustering and input order insensitivity, high dimensionality handling, constraint-based clustering, and interpretability and usability.",
-        "actual_answer": "Scalability; ability to deal with different types of attributes; discovery of clusters with arbitrary shape; minimal requirements for domain knowledge to determine input parameters; ability to deal with noisy data; incremental clustering and insensitivity to the order of input records; high dimensionality; constraint-based clustering; interpretability and usability.",
-        "similarity_score": 0.9199
-    },
-    {
-        "document": "NIPS-2017-attention-is-all-you-need-Paper.pdf",
-        "question": "What core innovation does the Transformer architecture introduce?",
-        "expected_answer": "It replaces recurrence with self-attention mechanisms to model dependencies between input and output without relying on sequence order.",
-        "actual_answer": "The Transformer architecture introduces a new simple network architecture based solely on attention mechanisms, dispensing with recurrence and convolutions entirely.",
-        "similarity_score": 0.7545
+        "document": "AtificialIntelligenceWhatisit-RiturajMahato.pdf",
+        "question": "What are the benefits and concerns of using Artificial Intelligence in education?",
+        "expected_answer": "Key benefits include personalized learning, reduced teacher workload, intelligent teaching tools, and flexibility through platforms like Coursera and Udemy. Major concerns involve potential job loss, ethical risks, overdependence on technology, and lack of sociological considerations in implementation.",
+        "actual_answer": "Benefits: personalized learning experiences, AI teaching assistants, consistent support, intelligent support for collaborative learning, reliability, cost-effectiveness, faster task completion, reduced errors, data-based decisions, increased productivity.  Concerns: potential for harm, lack of sociological thinking, exploitation of technology in resource-poor settings, job displacement.\n\nSource: Provided text",
+        "similarity_score": 0.8987,
+        "completeness_score": 0.6667,
+        "citation_score": 1.0
     }
 ]

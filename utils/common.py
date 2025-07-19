@@ -11,10 +11,25 @@ from langchain_community.vectorstores import FAISS
 # from langchain.vectorstores import 
 from langchain.chains.question_answering import load_qa_chain  
 from langchain.prompts import PromptTemplate
+from langchain.schema import Document
+from langchain_community.vectorstores.utils import cosine_similarity # type: ignore
+import hashlib
+import json
+from datetime import datetime
+
+
+
+import warnings
+warnings.filterwarnings("ignore")
 
 load_dotenv()
 
 genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))  # type: ignore
+query_cache = [] 
+
+
+def chunk_id(text: str):
+    return hashlib.md5(text.strip().encode('utf-8')).hexdigest()
 
 # get all text from all pdf
 def get_pdf_into_text(docs:list) -> str:
@@ -26,11 +41,11 @@ def get_pdf_into_text(docs:list) -> str:
     for doc in docs:
         try:
             content=''
-            if(doc.endswith('.pdf')):
+            if(str(doc).endswith('.pdf')):
                 reader = PdfReader(doc)
                 for page in reader.pages:
                     content += page.extract_text()
-            elif(doc.endswith('.txt')):
+            elif(str(doc).endswith('.txt')):
                 with open(doc, 'r') as f:
                     content = f.read()
             # print(content[:1000])
@@ -41,9 +56,15 @@ def get_pdf_into_text(docs:list) -> str:
     
     return text
 
+
+def hash_question(question: str) -> str:
+    return hashlib.md5(question.strip().lower().encode('utf-8')).hexdigest()
+
+
 def get_pdf_into_text_for_streamlit(docs: list) -> str:
     text = ''
     logger.info("Extracting text from PDF:")
+    filename=''
     for doc in docs:
         try:
             content = ''
@@ -57,7 +78,7 @@ def get_pdf_into_text_for_streamlit(docs: list) -> str:
                 content = doc.read().decode("utf-8")
             text += content
         except Exception as e:
-            logger.error(f"❌ Failed to extract text from: {filename}")
+            logger.error(f"Failed to extract text from: {filename}")
             raise CustomException(e, sys)
     return text
 
@@ -82,27 +103,25 @@ def create_chunks(text) -> list:
 
 def get_vector_store(chunks):
     logger.info("Creating vector store")
-    try:  
-        # documents = [Document(page_content=chunk) for chunk in chunks]
-        
-        # converting words/characters in vector(number)
+    try:
         embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-        # vector_store = Chroma.from_documents(
-        #     documents=documents,
-        #     embedding=embedding,
-        #     persist_directory='./chroma_index'
-        #     )
-        # vector_store.persist()
-        
-        # using FAISS
-        vector_store = FAISS.from_texts(
-            texts=chunks,
-            embedding=embedding
-        )
+
+        # Convert each chunk into a Document with metadata
+        documents = [
+            Document(
+                page_content=chunk,
+                metadata={
+                    "source": f"chunk_{i}",
+                    "chunk_id": chunk_id(chunk)  # Add a unique ID
+                }
+            )
+            for i, chunk in enumerate(chunks)
+        ]
+
+        vector_store = FAISS.from_documents(documents, embedding)
         vector_store.save_local("faiss_index")
-        
     except Exception as e:
-        CustomException(e,sys)
+        CustomException(e, sys)
         logger.error("Error while creating vector store")
 
 def get_qa_chain():
@@ -113,6 +132,8 @@ def get_qa_chain():
         
         If the answer is not present in the context, reply with:
         'Answer is not available in that context.' or 'Not able to find the answer from PDFs.'
+        
+        At the end of your answer, mention the source 
 
         If the question is unrelated to the context, reply with:
         'Not able to find the answer from PDFs.'
@@ -127,7 +148,7 @@ def get_qa_chain():
         Question:
         {question}
 
-        Answer:
+      
         """
         
         model = ChatGoogleGenerativeAI(
@@ -153,25 +174,70 @@ def get_qa_chain():
         logger.error("Error while loading QA Chain")
         return None
 
+def save_feedback(feedback_data, feedback_file="feedback_log.json"):
+    try:
+        dir = feedback_file.split(".")[0]
+        os.makedirs(dir, exist_ok=True)
+        feedback_file = os.path.join(dir, feedback_file)
+        if os.path.exists(feedback_file):
+            with open(feedback_file, "r") as f:
+                data = json.load(f)
+        else:
+            data = []
+
+        feedback_data["timestamp"] = datetime.utcnow().isoformat() + "Z"
+        data.append(feedback_data)
+
+        with open(feedback_file, "w") as f:
+            json.dump(data, f, indent=4)
+
+        logger.info("Full feedback saved successfully.")
+        
+    except Exception as e:
+        logger.error("Failed to save full feedback.")
+        raise CustomException(e, sys)
+
+
 def get_answer_from_chain(question):
-    logger.info(f"Getting the answer of the usered Question\n{question}")
-    embeddings = GoogleGenerativeAIEmbeddings(model='models/embedding-001')
-    vectordb = FAISS.load_local("faiss_index", embeddings=embeddings, allow_dangerous_deserialization=True)
-    
-    # Use top 5 results for better context
+    logger.info(f"Getting the answer to the user question:\n{question}")
+    similarity_threshold = 0.9
+    embedding_model = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    question_embedding = embedding_model.embed_query(question)
+
+    # Check for similar question in cache
+    for cached in query_cache:
+        sim = cosine_similarity([question_embedding], [cached["embedding"]])[0][0]
+        if sim >= similarity_threshold:
+            logger.info(f"Found semantically similar question in cache (similarity={sim:.2f}).")
+            return cached["result"]
+
+    # If not found, proceed normally
+    vectordb = FAISS.load_local("faiss_index", embeddings=embedding_model, allow_dangerous_deserialization=True)
     docs = vectordb.similarity_search(question, k=5)
-    
+    chunk_ids = [doc.metadata.get("chunk_id", "unknown") for doc in docs]
+
     chain = get_qa_chain()
-    
+
     response = chain.invoke({ # type: ignore
         'input_documents': docs,
         'question': question
     })
-    
-    # print(response)
-    logger.info(f"Response from LLM: {response}")
-    if isinstance(response, dict):
-        return response.get('output_text', response.get('text', '')).strip()
-    
-    return response.strip()
-  
+
+    answer = response.get('output_text', response.get('text', '')).strip()
+    sources = [doc.metadata.get("source", "unknown") for doc in docs]
+
+    result = {
+        "answer": answer,
+        "sources": sources,
+        "chunk_ids": chunk_ids
+    }
+
+    # Save to cache
+    query_cache.append({
+        "question": question,
+        "embedding": question_embedding,
+        "result": result
+    })
+    logger.info("New result cached successfully.")
+
+    return result

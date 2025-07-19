@@ -1,5 +1,5 @@
 # Multi PDF/ TEXT Q&A
-
+[![Demo](https://img.shields.io/badge/Demo-Live-green)](https://multi-pdf-question-and-answering.onrender.com/)
 A simple tool to ask questions across multiple PDF/ text files using Google Gemini AI.
 
 ## Table of Contents

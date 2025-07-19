@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from utils.common import get_pdf_into_text, create_chunks, get_vector_store, get_answer_from_chain
 from utils import logger
+from datetime import datetime
 import google.generativeai as genai
 
 
@@ -99,7 +100,7 @@ def evaluate_model():
         print("❌ No valid PDF/Text files found in 'eval_pdfs' directory.")
         return
 
-    text = get_pdf_into_text(pdfs[:1])
+    text = get_pdf_into_text(pdfs)
     if not text.strip():
         print("❌ No text could be extracted from the PDF/Text files.")
         return
@@ -121,6 +122,7 @@ def evaluate_model():
         try:
             response_obj = get_answer_from_chain(question)
             response = response_obj["answer"]
+            response = response.split("Source:")[0].strip()
 
             # Similarity and completeness as usual
             score = similarity_score(response, expected_answer)
@@ -154,19 +156,40 @@ def evaluate_model():
                 "actual_answer": "Error: " + str(e),
                 "similarity_score": 0.0
             })
+            
+    avg_similarity = sum(r["similarity_score"] for r in results) / len(results)
+    avg_completeness = sum(r["completeness_score"] for r in results) / len(results)
+    avg_citation = sum(r["citation_score"] for r in results) / len(results)
 
-    # Save to JSON and CSV
+    # Print results
+    print("\n🎯 Final Evaluation Result:")
+    print(f"Average Similarity Score: {avg_similarity:.4f}")
+    print(f"Average Completeness Score: {avg_completeness:.4f}")
+    print(f"Average Citation Score: {avg_citation:.4f}")
+    print(f"{'='*40}")
+
+    # Prepare JSON summary
+    summary = {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "average_similarity_score": avg_similarity,
+        "average_completeness_score": avg_completeness,
+        "average_citation_score": avg_citation
+    }
+    
+    # Save both results and summary in a single JSON file
+    final_output = {
+        "timestamp": summary["timestamp"],
+        "summary": summary,
+        "evaluations": results
+    }
+
     with open("evaluation_results.json", "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=4)
+        json.dump(final_output, f, indent=4)
+
 
     pd.DataFrame(results).to_csv("evaluation_results.csv", index=False)
 
-    avg_score = sum(r["similarity_score"] for r in results) / len(results)
-    print("\n🎯 Final Evaluation Result:")
-    print(f"Average Similarity Score: {avg_score:.4f}")
-    print(f"Average Completeness Score: {sum(r['completeness_score'] for r in results) / len(results):.4f}")
-    print(f"Average Citation Score: {sum(r['citation_score'] for r in results) / len(results):.4f}")
-    print(f"{'='*40}")
+    
 
 # --- Run ---
 if __name__ == "__main__":

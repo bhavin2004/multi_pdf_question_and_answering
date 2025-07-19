@@ -3,5 +3,5 @@ __pycache__/
 logs/
 venv/
 .env
-feedback_log/*
+
 

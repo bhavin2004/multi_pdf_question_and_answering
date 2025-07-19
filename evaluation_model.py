@@ -48,18 +48,18 @@ evaluation_data = {
         "answer": "Key benefits include personalized learning, reduced teacher workload, intelligent teaching tools, and flexibility through platforms like Coursera and Udemy. Major concerns involve potential job loss, ethical risks, overdependence on technology, and lack of sociological considerations in implementation."
     },
     
-#     "Ch1Materialpdf__2025_06_11_13_08_19.pdf": {
-#         "question": "What are the key terminologies in Reinforcement Learning and what issues are commonly faced in Machine Learning?",
-#         "answer": "Key terms include Agent, Environment, Action, Reward, Policy, Return, Episode, and State. Common issues in ML are data quality and quantity, overfitting, underfitting, data bias, interpretability, computational resources, deployment challenges, security/privacy risks, and ethical concerns."
-#     },
-#     "DMandDMDWpdf__2025_06_07_15_49_49.pdf": {
-#         "question": "What are the typical requirements of clustering in data mining?",
-#         "answer": "Typical requirements include scalability, ability to deal with different types of attributes, discovery of clusters with arbitrary shape, minimal domain knowledge for input parameters, ability to handle noisy data, incremental clustering and input order insensitivity, high dimensionality handling, constraint-based clustering, and interpretability and usability."
-#     },
-#     "NIPS-2017-attention-is-all-you-need-Paper.pdf": {
-#         "question": "What core innovation does the Transformer architecture introduce?",
-#         "answer": "It replaces recurrence with self-attention mechanisms to model dependencies between input and output without relying on sequence order."
-#     }
+    "Ch1Materialpdf__2025_06_11_13_08_19.pdf": {
+        "question": "What are the key terminologies in Reinforcement Learning and what issues are commonly faced in Machine Learning?",
+        "answer": "Key terms include Agent, Environment, Action, Reward, Policy, Return, Episode, and State. Common issues in ML are data quality and quantity, overfitting, underfitting, data bias, interpretability, computational resources, deployment challenges, security/privacy risks, and ethical concerns."
+    },
+    "DMandDMDWpdf__2025_06_07_15_49_49.pdf": {
+        "question": "What are the typical requirements of clustering in data mining?",
+        "answer": "Typical requirements include scalability, ability to deal with different types of attributes, discovery of clusters with arbitrary shape, minimal domain knowledge for input parameters, ability to handle noisy data, incremental clustering and input order insensitivity, high dimensionality handling, constraint-based clustering, and interpretability and usability."
+    },
+    "NIPS-2017-attention-is-all-you-need-Paper.pdf": {
+        "question": "What core innovation does the Transformer architecture introduce?",
+        "answer": "It replaces recurrence with self-attention mechanisms to model dependencies between input and output without relying on sequence order."
+    }
 }
 
 def citation_score(answer_obj, expected_sources=None):
